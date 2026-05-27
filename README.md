@@ -144,7 +144,30 @@ The custom streamer:
 
 ## Configuration
 
-The only configuration needed is either the `NVIDIA_NIM_API_KEY` or `NVIDIA_API_KEY` environment variable. All models on NVIDIA NIM are free during the preview period (with rate limits).
+The only required configuration is either the `NVIDIA_NIM_API_KEY` or `NVIDIA_API_KEY` environment variable. All models on NVIDIA NIM are free during the preview period (with rate limits).
+
+### Rate-Limiting & Retry (optional)
+
+The extension automatically installs a transparent rate-limiter and 429-retry wrapper for all requests targeting `https://integrate.api.nvidia.com`.  It **does not touch** any other provider.
+
+| Environment Variable | Default | Description |
+| --- | --- | --- |
+| `NVIDIA_NIM_MAX_CONCURRENCY` | `5` | Max in-flight requests sent to NIM simultaneously. |
+| `NVIDIA_NIM_MAX_RPM` | `35` | Safe margin under the 40 rpm free-tier ceiling. Smaller = gentler. |
+| `NVIDIA_NIM_MAX_RETRIES` | `3` | How many times to retry a 429 before giving up. |
+| `NVIDIA_NIM_RETRY_BASE_DELAY_MS` | `2000` | First retry backoff (ms). |
+| `NVIDIA_NIM_RETRY_MAX_DELAY_MS` | `30000` | Upper cap for exponential backoff (ms). |
+| `NVIDIA_NIM_TIMEOUT_MS` | `320000` | Total request timeout passed to the OpenAI client (5 min 20 s). |
+
+Example (`.bashrc` / `.zshrc`):
+
+```bash
+# Relax the rate limiter if you have a paid key with higher limits
+export NVIDIA_NIM_MAX_RPM=60
+
+# Shorter backoff for faster recovery
+export NVIDIA_NIM_RETRY_BASE_DELAY_MS=500
+```
 
 ## Notes
 
@@ -152,7 +175,7 @@ The only configuration needed is either the `NVIDIA_NIM_API_KEY` or `NVIDIA_API_
 - Context windows and max tokens are best-effort estimates; some may differ from actual API limits
 - If a model isn't in the curated list, it gets a conservative 32K context window and 8K max output tokens
 - The extension filters out embedding, reward, safety, and other non-chat models automatically
-- Rate limits on free preview keys are relatively strict; you may encounter 429 errors during heavy usage
+- Rate limits on free preview keys are relatively strict; you may encounter 429 errors during heavy usage.  The extension now installs an automatic rate-limiter and retry wrapper to mitigate this.
 - MiniMax models use `<think>` tags inline in content rather than the `reasoning_content` field
 
 ## License

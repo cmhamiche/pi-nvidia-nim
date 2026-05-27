@@ -45,6 +45,17 @@ import type {
 } from "@earendil-works/pi-ai";
 import { streamSimpleOpenAICompletions } from "@earendil-works/pi-ai";
 import { getAgentDir, type ExtensionAPI } from "@earendil-works/pi-coding-agent";
+import { installNimFetchWrapper } from "./rate-limit.ts";
+
+// Install the transparent rate-limiter and 429-retry wrapper for NVIDIA
+// NIM's free-preview endpoint.  It only touches requests targeting
+// https://integrate.api.nvidia.com and never affects other providers.
+let _nimWrapperCleanup: (() => void) | null = null;
+function ensureNimWrapperInstalled() {
+	if (!_nimWrapperCleanup) {
+		_nimWrapperCleanup = installNimFetchWrapper();
+	}
+}
 
 // =============================================================================
 // Constants
@@ -654,6 +665,14 @@ function nimStreamSimple(
 		...options,
 		reasoning: effectiveReasoning,
 		apiKey: nimApiKey,
+		// NIM-specific resilience settings — free tier can hit 429 / 504.
+		// Env vars let users tune without touching code.
+		maxRetries:
+			options?.maxRetries ??
+			(Number.parseInt(process.env.NVIDIA_NIM_MAX_RETRIES ?? "3", 10) || 3),
+		timeoutMs:
+			options?.timeoutMs ??
+			(Number.parseInt(process.env.NVIDIA_NIM_TIMEOUT_MS ?? "320000", 10) || 320_000),
 		onPayload: (params: unknown) => {
 			const p = params as Record<string, unknown>;
 
@@ -834,6 +853,9 @@ async function fetchNimModels(apiKey: string): Promise<NimModelFetchResult> {
 // =============================================================================
 
 export default function (pi: ExtensionAPI) {
+	// Ensure the transparent rate-limiter + 429-retry wrapper is active.
+	ensureNimWrapperInstalled();
+
 	const providerApiKeyConfig = getNimApiKeyEnv() ?? NVIDIA_NIM_API_KEY_ENV;
 
 	// Always register the curated model list. The request path resolves credentials
