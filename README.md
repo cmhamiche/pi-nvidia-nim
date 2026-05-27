@@ -1,3 +1,7 @@
+Add rate-limiter and 429-retry for NIM free tier
+
+----
+
 # pi-nvidia-nim
 
 NVIDIA NIM API provider extension for [pi coding agent](https://github.com/earendil-works/pi-mono) - access 100+ models from [build.nvidia.com](https://build.nvidia.com) including DeepSeek V4 Flash/Pro, DeepSeek V3.2, Kimi K2.6, MiniMax M2.1, GLM-5, GLM-4.7, Qwen3, Llama 4, and many more.
