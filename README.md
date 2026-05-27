@@ -1,7 +1,3 @@
-Add rate-limiter and 429-retry for NIM free tier
-
-----
-
 # pi-nvidia-nim
 
 NVIDIA NIM API provider extension for [pi coding agent](https://github.com/earendil-works/pi-mono) - access 100+ models from [build.nvidia.com](https://build.nvidia.com) including DeepSeek V4 Flash/Pro, DeepSeek V3.2, Kimi K2.6, MiniMax M2.1, GLM-5, GLM-4.7, Qwen3, Llama 4, and many more.
@@ -179,7 +175,7 @@ export NVIDIA_NIM_RETRY_BASE_DELAY_MS=500
 - Context windows and max tokens are best-effort estimates; some may differ from actual API limits
 - If a model isn't in the curated list, it gets a conservative 32K context window and 8K max output tokens
 - The extension filters out embedding, reward, safety, and other non-chat models automatically
-- Rate limits on free preview keys are relatively strict; you may encounter 429 errors during heavy usage.  The extension now installs an automatic rate-limiter and retry wrapper to mitigate this.
+- Rate limits on free preview keys are relatively strict; you may encounter 429 errors during heavy usage.  **The extension now installs an automatic rate-limiter and retry wrapper to mitigate this.**
 - MiniMax models use `<think>` tags inline in content rather than the `reasoning_content` field
 
 ## License
